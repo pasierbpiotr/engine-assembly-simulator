@@ -1,10 +1,10 @@
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 
-
 public class EnginePart : MonoBehaviour
 {
     public AssemblyState State { get; private set; }
+    public string GroupId; // Add this line
     private XRGrabInteractable grabInteractable;
 
     private void Awake()

@@ -3,55 +3,80 @@ using System.Collections.Generic;
 
 public class EngineAssemblyManager : MonoBehaviour
 {
-    private Queue<EnginePart> assemblyQueue = new Queue<EnginePart>();
+    private Queue<string> groupQueue = new Queue<string>();
     public List<EnginePart> partsOrder;
     public List<EngineSocket> socketsOrder;
+    private Dictionary<string, int> groupPartCount = new Dictionary<string, int>();
+    private Dictionary<string, int> groupAssembledCount = new Dictionary<string, int>();
+    private TimeManager timeManager;
 
     void Start()
     {
+        timeManager = FindObjectOfType<TimeManager>();
         InitializeAssemblyQueue();
     }
 
     private void InitializeAssemblyQueue()
     {
-        for (int i = 0; i < partsOrder.Count; i++)
+        foreach (var part in partsOrder)
         {
-            EnginePart part = partsOrder[i];
-            EngineSocket socket = socketsOrder[i];
-
-            part.SetState(AssemblyState.Locked);
-            socket.SetSocketActive(false);
-
-            assemblyQueue.Enqueue(part);
+            if (!groupPartCount.ContainsKey(part.GroupId))
+            {
+                groupPartCount[part.GroupId] = 0;
+                groupAssembledCount[part.GroupId] = 0;
+                groupQueue.Enqueue(part.GroupId);
+            }
+            groupPartCount[part.GroupId]++;
         }
 
-        if (assemblyQueue.Count > 0)
-        {
-            EnginePart firstPart = assemblyQueue.Peek();
-            firstPart.SetState(AssemblyState.Unlocked);
-
-            EngineSocket firstSocket = socketsOrder[0];
-            firstSocket.SetSocketActive(true);
-        }
+        UnlockNextGroup();
     }
 
     public void AssemblePart(EnginePart part)
     {
-        if (assemblyQueue.Peek() == part && part.State == AssemblyState.Unlocked)
+        if (part.State == AssemblyState.Unlocked)
         {
             part.SetState(AssemblyState.Assembled);
-            assemblyQueue.Dequeue();
+        }
+    }
 
-            if (assemblyQueue.Count > 0)
+    public void OnPartAssembled(EnginePart part)
+    {
+        if (groupAssembledCount.ContainsKey(part.GroupId))
+        {
+            groupAssembledCount[part.GroupId]++;
+            timeManager.StopTiming(part.GroupId, part.name); // Stop timing for the current part
+
+            if (groupAssembledCount[part.GroupId] == groupPartCount[part.GroupId])
             {
-                EnginePart nextPart = assemblyQueue.Peek();
-                nextPart.SetState(AssemblyState.Unlocked);
+                Debug.Log($"All parts in group {part.GroupId} have been assembled.");
+                UnlockNextGroup();
+            }
+            else
+            {
+                timeManager.StartTiming(part.GroupId); // Start timing for the next part in the group
+            }
+        }
+    }
 
-                int nextIndex = partsOrder.IndexOf(nextPart);
-                if (nextIndex >= 0 && nextIndex < socketsOrder.Count)
+    private void UnlockNextGroup()
+    {
+        if (groupQueue.Count > 0)
+        {
+            string nextGroupId = groupQueue.Dequeue();
+            timeManager.StartTiming(nextGroupId);
+            foreach (var part in partsOrder)
+            {
+                if (part.GroupId == nextGroupId)
                 {
-                    EngineSocket nextSocket = socketsOrder[nextIndex];
-                    nextSocket.SetSocketActive(true);
+                    part.SetState(AssemblyState.Unlocked);
+                }
+            }
+            foreach (var socket in socketsOrder)
+            {
+                if (socket.groupId == nextGroupId)
+                {
+                    socket.SetSocketActive(true);
                 }
             }
         }

@@ -3,14 +3,14 @@ using UnityEngine.XR.Interaction.Toolkit;
 
 public class EngineSocket : MonoBehaviour
 {
-    public string requiredPartName;
+    public string groupId; // Change this line to focus on groupId
     private XRSocketInteractor socketInteractor;
     private Renderer socketRenderer;
+    private bool isPartAssembled = false;
 
     private void Awake()
     {
         socketInteractor = GetComponent<XRSocketInteractor>();
-
         socketRenderer = GetComponent<Renderer>();
         socketInteractor.selectExited.AddListener(OnPartAttemptedRelease);
     }
@@ -52,16 +52,17 @@ public class EngineSocket : MonoBehaviour
 
         if (part != null)
         {
-            if (part.State == AssemblyState.Assembled)
+            if (isPartAssembled)
             {
                 Debug.Log($"Part {part.name} is already assembled.");
                 return;
             }
 
-            if (part.name == requiredPartName)
+            if (part.GroupId == groupId) // Check groupId
             {
                 Debug.Log($"Correct part placed in socket: {part.name}");
                 part.OnPartAssembled();
+                isPartAssembled = true;
 
                 Transform attachTransform = socketInteractor.attachTransform;
 
@@ -82,6 +83,13 @@ public class EngineSocket : MonoBehaviour
                 }
 
                 part.gameObject.layer = LayerMask.NameToLayer("AssembledPart");
+
+                socketInteractor.enabled = false;
+                socketInteractor.selectEntered.RemoveListener(OnPartPlaced);
+                socketInteractor.selectExited.RemoveListener(OnPartAttemptedRelease);
+
+                EngineAssemblyManager manager = FindObjectOfType<EngineAssemblyManager>();
+                manager.OnPartAssembled(part);
             }
             else
             {
@@ -95,7 +103,6 @@ public class EngineSocket : MonoBehaviour
             }
         }
     }
-
 
     private void OnPartAttemptedRelease(SelectExitEventArgs args)
     {
