@@ -1,0 +1,2 @@
+- poprawić układ stanowiska do składania, wziąć pod uwagę potencjalną mniejszą przestrzeń użytkownika
+- ulepszyć zapisywanie informacji odnośnie czasów, by można je było uzyskać przy zbudowaniu apki i uruchomieniu jej na urządzeniu
