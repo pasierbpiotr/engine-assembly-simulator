@@ -82,7 +82,9 @@ public class EngineAssemblyManager : MonoBehaviour
 
         // Zwiększenie licznika zamontowanych części dla grupy.
         groupAssembledCount[part.GroupId]++;
-        timeManager.StopTiming(part.GroupId, part.name); // Zatrzymanie czasu dla zamontowanej części.
+        timeManager.StopTiming(part.GroupId, part.name); // Use GetElapsedTime() if necessary
+        Debug.Log($"Elapsed Time for {part.name}: {timeManager.GetElapsedTime()} seconds");
+
 
         // Jeśli wszystkie części w grupie zostały zamontowane, odblokuj następną grupę.
         if (groupAssembledCount[part.GroupId] == groupPartCount[part.GroupId])

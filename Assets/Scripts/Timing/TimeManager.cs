@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.IO;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Zarządzanie czasem dla grup i części w procesie montażu.
@@ -13,17 +14,44 @@ public class TimeManager : MonoBehaviour
     // Ścieżka do pliku CSV.
     private string csvFilePath = "TimeData/AssemblyTimes.csv";
 
-    /// <summary>
-    /// Metoda uruchamiana na początku działania skryptu.
-    /// </summary>
+    private float startTime;
+
+    private void Awake()
+    {
+        // Register the sceneLoaded event to detect scene loads
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDestroy()
+    {
+        // Unregister to prevent memory leaks
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (scene.name == "BuildingScene")
+        {
+            StartTimer();
+        }
+    }
+
+    private void StartTimer()
+    {
+        startTime = Time.time;
+        Debug.Log("Timer started for building scene!");
+    }
+
+    public float GetElapsedTime()
+    {
+        return Time.time - startTime;
+    }
+
     void Start()
     {
         InitializeCSVFile();
     }
 
-    /// <summary>
-    /// Inicjalizacja pliku CSV, tworzenie pliku z nagłówkiem, jeśli nie istnieje.
-    /// </summary>
     private void InitializeCSVFile()
     {
         if (!File.Exists(csvFilePath))
@@ -37,21 +65,12 @@ public class TimeManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Rozpoczyna mierzenie czasu dla danej grupy.
-    /// </summary>
-    /// <param name="groupId">Identyfikator grupy.</param>
     public void StartTiming(string groupId)
     {
         groupStartTime[groupId] = Time.time;
         Debug.Log($"Rozpoczęto mierzenie czasu dla grupy {groupId} o {groupStartTime[groupId]} sekund.");
     }
 
-    /// <summary>
-    /// Kończy mierzenie czasu dla danej grupy i części, zapisując wynik do pliku CSV.
-    /// </summary>
-    /// <param name="groupId">Identyfikator grupy.</param>
-    /// <param name="partId">Identyfikator części.</param>
     public void StopTiming(string groupId, string partId)
     {
         if (groupStartTime.ContainsKey(groupId))
@@ -73,12 +92,6 @@ public class TimeManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Zapisuje zmierzony czas do pliku CSV.
-    /// </summary>
-    /// <param name="groupId">Identyfikator grupy.</param>
-    /// <param name="partId">Identyfikator części.</param>
-    /// <param name="timeTaken">Czas trwania w sekundach.</param>
     private void SaveTimeToCSV(string groupId, string partId, float timeTaken)
     {
         using (StreamWriter sw = File.AppendText(csvFilePath))
