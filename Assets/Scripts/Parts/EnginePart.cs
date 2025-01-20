@@ -1,68 +1,84 @@
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 
-/// <summary>
-/// Klasa reprezentująca część silnika z logiką interakcji i stanów montażu.
-/// </summary>
 public class EnginePart : MonoBehaviour
 {
-    // Aktualny stan montażu części.
-    public AssemblyState State { get; private set; }
-
-    // Identyfikator grupy, do której należy część.
-    public string GroupId;
-
-    // Komponent XRGrabInteractable odpowiedzialny za interakcję z częścią.
+    public AssemblyState State { get; private set; } // Part assembly state
+    public string GroupId; // ID of the group this part belongs to
+    public string PartId; // Unique identifier for this part
     private XRGrabInteractable grabInteractable;
+    private TimeManager timeManager;
 
-    /// <summary>
-    /// Metoda wywoływana przy inicjalizacji obiektu. Pobiera komponent XRGrabInteractable.
-    /// </summary>
     private void Awake()
     {
         grabInteractable = GetComponent<XRGrabInteractable>();
+        timeManager = FindObjectOfType<TimeManager>();
     }
 
     /// <summary>
-    /// Ustawia nowy stan montażu dla części i odpowiednio zmienia warstwy oraz warunki interakcji.
+    /// Sets the assembly state and handles interactivity accordingly.
     /// </summary>
-    /// <param name="newState">Nowy stan montażu.</param>
+    /// <param name="newState">The new assembly state.</param>
     public void SetState(AssemblyState newState)
     {
         State = newState;
 
-        // Zmiana warstwy i interakcji w zależności od stanu montażu.
-        if (State == AssemblyState.Locked)
+        switch (State)
         {
-            gameObject.layer = LayerMask.NameToLayer("LockedPart");
-            grabInteractable.interactionLayers = InteractionLayerMask.GetMask("LockedPart");
-        }
-        else if (State == AssemblyState.Unlocked)
-        {
-            gameObject.layer = LayerMask.NameToLayer("UnlockedPart");
-            grabInteractable.interactionLayers = InteractionLayerMask.GetMask("UnlockedPart");
-        }
-        else if (State == AssemblyState.Assembled)
-        {
-            gameObject.layer = LayerMask.NameToLayer("AssembledPart");
-            grabInteractable.interactionLayers = InteractionLayerMask.GetMask("AssembledPart");
-            grabInteractable.enabled = false; // Wyłączenie interakcji z zamontowaną częścią.
+            case AssemblyState.Locked:
+                grabInteractable.interactionLayers = InteractionLayerMask.GetMask("LockedPart");
+                break;
+
+            case AssemblyState.Unlocked:
+                grabInteractable.interactionLayers = InteractionLayerMask.GetMask("UnlockedPart");
+
+                // Start timing as soon as the part becomes available to the player
+                if (timeManager != null)
+                {
+                    timeManager.StartTiming(PartId);
+                }
+                break;
+
+            case AssemblyState.Assembled:
+                grabInteractable.enabled = false; // Disable grabbing interactions
+                grabInteractable.interactionLayers = InteractionLayerMask.GetMask("Assembled"); // Change to assembled layer
+
+                Debug.Log($"Part {PartId} is now assembled and no longer interactive.");
+
+                // Stop timing when the part is assembled
+                if (timeManager != null)
+                {
+                    timeManager.StopTiming(GroupId, PartId);
+                }
+                break;
         }
 
-        // Debugowanie informacji o stanie i warstwie części.
-        Debug.Log($"Część {name}: Stan={State}, Warstwa={gameObject.layer}");
+        Debug.Log($"Part {PartId}: State changed to {State}");
     }
 
     /// <summary>
-    /// Wywoływana podczas montażu części. Informuje menedżera montażu o zmontowaniu części.
+    /// Notifies the parent group when the part is fully assembled.
     /// </summary>
     public void OnPartAssembled()
     {
         if (State == AssemblyState.Unlocked)
         {
-            // Znajduje menedżera montażu i zgłasza zmontowanie części.
-            EngineAssemblyManager manager = FindObjectOfType<EngineAssemblyManager>();
-            manager.AssemblePart(this);
+            SetState(AssemblyState.Assembled); // Transition the part to assembled state
+
+            // Stop the part from being affected by physics
+            Rigidbody rb = GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.isKinematic = true; // Make it non-physical
+                rb.useGravity = false; // Disable gravity
+            }
+
+            // Notify the parent group
+            var parentGroup = GetComponentInParent<EngineGroup>();
+            if (parentGroup != null) parentGroup.OnPartAssembled();
+            else Debug.LogWarning($"Part {PartId}: No parent group found to notify.");
         }
+        else Debug.LogWarning($"Part {PartId}: Cannot assemble because it is not unlocked.");
+
     }
 }
