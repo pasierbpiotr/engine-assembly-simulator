@@ -20,11 +20,11 @@ MonoBehaviour:
   - Water
   - UI
   - LockedPart
-  - UnlockedPart
+  - LockedSocket
+  - Unlocked
   - AssembledPart
-  - 
-  - 
-  - 
+  - AssembledSocket
+  - None
   - 
   - 
   - 

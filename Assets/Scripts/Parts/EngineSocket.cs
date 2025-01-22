@@ -1,116 +1,148 @@
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 
-public class EngineSocket : MonoBehaviour
+public class EngineSocket : XRSocketInteractor
 {
     public string groupId; // Group this socket belongs to
-
-    private XRSocketInteractor socketInteractor;
-    private Renderer socketRenderer;
     private bool isPartAssembled = false;
 
-    private void Awake()
-    {
-        socketInteractor = GetComponent<XRSocketInteractor>();
-        socketRenderer = GetComponent<Renderer>();
-
-        // Listen to part placement and removal
-        socketInteractor.selectEntered.AddListener(OnPartPlaced);
-    }
-
-    private void OnDestroy()
-    {
-        // Cleanup listeners
-        socketInteractor.selectEntered.RemoveListener(OnPartPlaced);
-    }
-
     /// <summary>
-    /// Activates or deactivates the socket for interactivity.
+    /// Override CanSelect to enforce validation for compatible parts.
     /// </summary>
-    /// <param name="isActive">Whether the socket should be active.</param>
-    public void SetSocketActive(bool isActive)
+public override bool CanSelect(IXRSelectInteractable interactable)
+{
+    if (isPartAssembled) return false; // Prevent interaction if the part is already in place
+
+    var enginePart = interactable.transform.GetComponent<EnginePart>();
+    if (enginePart != null && enginePart.GroupId == groupId)
     {
-        socketInteractor.enabled = isActive;
-
-        if (isActive)
+        var grabInteractable = interactable as XRGrabInteractable;
+        if (grabInteractable != null && grabInteractable.isSelected)
         {
-            socketInteractor.interactionLayers = LayerMask.GetMask("UnlockedPart");
-        }
-        else
-        {
-            socketInteractor.interactionLayers = LayerMask.GetMask("Assembled"); // Optionally, disallow future interactions
+            return false; // Prevent the socket from selecting the part while it is still being held.
         }
 
-        if (socketRenderer != null)
-        {
-            socketRenderer.enabled = isActive;
-        }
-
-        Debug.Log($"Socket {name} set active: {isActive}");
+        return true; // The part is valid and can be selected by the socket.
     }
+
+    return false; // Invalid part
+}
+
 
 
     /// <summary>
-    /// Called when a part is placed in the socket.
+    /// When a valid part is placed, handle snapping after letting go of the grab.
     /// </summary>
-    private void OnPartPlaced(SelectEnterEventArgs args)
+    protected override void OnSelectEntered(SelectEnterEventArgs args)
     {
-        if (isPartAssembled)
+        base.OnSelectEntered(args);
+
+        if (isPartAssembled) return;
+
+        var part = args.interactableObject.transform.GetComponent<EnginePart>();
+        if (part != null)
         {
-            Debug.LogWarning($"Socket {name} already has an assembled part.");
-            return;
-        }
+            Debug.Log($"Socket {name}: Part {part.name} entered the socket.");
 
-        EnginePart part = args.interactableObject.transform.GetComponent<EnginePart>();
-
-        if (part != null && part.GroupId == groupId)
-        {
-            Debug.Log($"Part {part.PartId} placed in socket {name}. Starting assembly...");
-            isPartAssembled = true;
-
-            part.OnPartAssembled(); // Notify the part and its group
-            SnapPartToSocket(part); // Align the part to the socket
-
-            // Disable grab interactions to prevent interference
             var grabInteractable = part.GetComponent<XRGrabInteractable>();
             if (grabInteractable != null)
             {
-                grabInteractable.enabled = false; // Prevent future grabs
+                // Ensure we do not add duplicate listeners
+                grabInteractable.selectExited.RemoveListener(OnGrabReleased);
+                grabInteractable.selectExited.AddListener(OnGrabReleased);
+
+                Debug.Log($"Socket {name}: Added OnGrabReleased listener for {part.name}.");
             }
-
-            // Optional: Parent the part to the socket for stability
-            part.transform.SetParent(this.transform);
-
-            // Optionally, deactivate this socket
-            SetSocketActive(false);
-
-            Debug.Log($"Part {part.PartId} assembled into socket {name}.");
         }
-        else
+    }
+
+
+    private float exitCooldown = 0.5f; // Half a second cooldown
+    private float lastExitTime = -1f;
+
+    protected override void OnSelectExited(SelectExitEventArgs args)
+    {
+        base.OnSelectExited(args);
+
+        if (isPartAssembled) return;
+
+        // Check for cooldown
+        if (Time.time - lastExitTime < exitCooldown)
         {
-            Debug.LogError($"Part {part?.name} does not belong to group {groupId} and cannot be placed in socket {name}.");
+            Debug.Log($"Socket {name}: Ignoring rapid OnSelectExited calls.");
+            return;
+        }
+        lastExitTime = Time.time;
+
+        var part = args.interactableObject.transform.GetComponent<EnginePart>();
+        if (part != null)
+        {
+            Debug.Log($"Socket {name}: Part {part.name} exited the socket.");
+            var grabInteractable = part.GetComponent<XRGrabInteractable>();
+            if (grabInteractable != null)
+            {
+                grabInteractable.selectExited.RemoveListener(OnGrabReleased);
+                Debug.Log($"Socket {name}: Removed OnGrabReleased listener for {part.name}.");
+            }
         }
     }
 
 
 
+
+private void OnGrabReleased(SelectExitEventArgs args)
+{
+    var part = args.interactableObject.transform.GetComponent<EnginePart>();
+    if (part == null || isPartAssembled) return;
+
+    // Snap the part to the socket
+    SnapPartToSocket(part);
+    part.OnPartAssembled();
+
+    // Disable part's interactivity
+    var grabInteractable = part.GetComponent<XRGrabInteractable>();
+    if (grabInteractable != null)
+    {
+        grabInteractable.enabled = false;
+        Debug.Log($"Part {part.name}: Grabbing interaction disabled.");
+    }
+
+    // Change the socket's interaction layers to a non-interactive state
+    interactionLayers = LayerMask.GetMask("AssembledSocket");
+    Debug.Log($"Socket {name}: Interaction layers set to Assembled.");
+
+    isPartAssembled = true; // Mark the socket as assembled
+
+    Debug.Log($"Socket {name}: Part {part.name} successfully assembled.");
+}
+
+
+
+
+
+
+    /// <summary>
+    /// Snaps the part to the socket's attach transform.
+    /// </summary>
     private void SnapPartToSocket(EnginePart part)
     {
-        var attachTransform = socketInteractor.attachTransform;
+        var attachTransform = this.attachTransform;
 
-        if (attachTransform == null)
+        if (attachTransform != null)
         {
-            Debug.LogWarning($"Socket {name} is missing an attach transform. The part might not snap.");
-            return; // Exit early
+            part.transform.position = attachTransform.position;
+            part.transform.rotation = attachTransform.rotation;
+            part.transform.SetParent(attachTransform); // Parent it to prevent falling
+
+            var rb = part.GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.isKinematic = true;
+            }
         }
-
-        // Snap the part's position and rotation
-        part.transform.position = attachTransform.position;
-        part.transform.rotation = attachTransform.rotation;
-
-        // Parent the part to the socket for stability
-        part.transform.SetParent(attachTransform);
-
-        Debug.Log($"Part {part.PartId} successfully snapped to socket {name} at position {attachTransform.position}, rotation {attachTransform.rotation}.");
+        else
+        {
+            Debug.LogWarning($"Socket {name} is missing an attach transform. Snapping skipped.");
+        }
     }
 }

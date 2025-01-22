@@ -19,6 +19,7 @@ public class EngineAssemblyManager : MonoBehaviour
         foreach (var group in GroupsOrder)
         {
             groupQueue.Enqueue(group);
+            Debug.Log($"AssemblyManager: Group {group.GroupId} added to the queue.");
         }
 
         UnlockNextGroup();
@@ -29,23 +30,28 @@ public class EngineAssemblyManager : MonoBehaviour
     /// </summary>
     public void OnGroupAssembled(EngineGroup group)
     {
-        Debug.Log($"Group {group.GroupId} completed.");
+        Debug.Log($"AssemblyManager: Group {group.GroupId} is fully assembled.");
         UnlockNextGroup();
     }
 
-    /// <summary>
-    /// Unlocks the next group in the queue if available.
-    /// </summary>
     private void UnlockNextGroup()
     {
         if (groupQueue.Count > 0)
         {
             var nextGroup = groupQueue.Dequeue();
-            nextGroup.Unlock();
+            if (nextGroup != null)
+            {
+                Debug.Log($"AssemblyManager: Unlocking next group {nextGroup.GroupId}.");
+                nextGroup.Unlock();
+            }
+            else
+            {
+                Debug.LogWarning("AssemblyManager: Next group in queue is null!");
+            }
         }
         else
         {
-            Debug.Log("All groups have been assembled!");
+            Debug.Log("AssemblyManager: All groups have been assembled!");
         }
     }
 }

@@ -30,9 +30,9 @@ public class EnginePart : MonoBehaviour
                 break;
 
             case AssemblyState.Unlocked:
-                grabInteractable.interactionLayers = InteractionLayerMask.GetMask("UnlockedPart");
+                grabInteractable.interactionLayers = InteractionLayerMask.GetMask("Unlocked");
 
-                // Start timing as soon as the part becomes available to the player
+                // Start timing when the part becomes unlocked (if applicable)
                 if (timeManager != null)
                 {
                     timeManager.StartTiming(PartId);
@@ -40,21 +40,22 @@ public class EnginePart : MonoBehaviour
                 break;
 
             case AssemblyState.Assembled:
-                grabInteractable.enabled = false; // Disable grabbing interactions
-                grabInteractable.interactionLayers = InteractionLayerMask.GetMask("Assembled"); // Change to assembled layer
-
-                Debug.Log($"Part {PartId} is now assembled and no longer interactive.");
+                grabInteractable.enabled = false; // Disable grab interaction
+                grabInteractable.interactionLayers = InteractionLayerMask.GetMask("AssembledPart");
 
                 // Stop timing when the part is assembled
                 if (timeManager != null)
                 {
                     timeManager.StopTiming(GroupId, PartId);
                 }
+
+                Debug.Log($"Part {PartId} is now assembled and has interaction layer: Assembled");
                 break;
         }
 
         Debug.Log($"Part {PartId}: State changed to {State}");
     }
+
 
     /// <summary>
     /// Notifies the parent group when the part is fully assembled.
@@ -63,22 +64,24 @@ public class EnginePart : MonoBehaviour
     {
         if (State == AssemblyState.Unlocked)
         {
-            SetState(AssemblyState.Assembled); // Transition the part to assembled state
-
-            // Stop the part from being affected by physics
-            Rigidbody rb = GetComponent<Rigidbody>();
-            if (rb != null)
-            {
-                rb.isKinematic = true; // Make it non-physical
-                rb.useGravity = false; // Disable gravity
-            }
+            SetState(AssemblyState.Assembled); // Transition to Assembled state
+            Debug.Log($"Part {PartId}: State set to Assembled.");
 
             // Notify the parent group
             var parentGroup = GetComponentInParent<EngineGroup>();
-            if (parentGroup != null) parentGroup.OnPartAssembled();
-            else Debug.LogWarning($"Part {PartId}: No parent group found to notify.");
+            if (parentGroup != null)
+            {
+                Debug.Log($"Part {PartId}: Notifying parent group {parentGroup.GroupId}.");
+                parentGroup.OnPartAssembled();
+            }
+            else
+            {
+                Debug.LogWarning($"Part {PartId}: No parent group found.");
+            }
         }
-        else Debug.LogWarning($"Part {PartId}: Cannot assemble because it is not unlocked.");
-
+        else
+        {
+            Debug.LogWarning($"Part {PartId}: Cannot assemble because it is not unlocked.");
+        }
     }
 }
