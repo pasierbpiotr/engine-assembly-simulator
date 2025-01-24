@@ -6,6 +6,10 @@ public class EngineAssemblyManager : MonoBehaviour
     public List<EngineGroup> GroupsOrder; // Ordered list of groups
     private Queue<EngineGroup> groupQueue = new Queue<EngineGroup>();
 
+    [Header("Dependencies")]
+    public InstructionScreen instructionScreen;   // Reference to the InstructionScreen
+    public InstructionManager instructionManager; // Reference to the InstructionManager
+
     private void Start()
     {
         InitializeGroupQueue();
@@ -43,6 +47,7 @@ public class EngineAssemblyManager : MonoBehaviour
             {
                 Debug.Log($"AssemblyManager: Unlocking next group {nextGroup.GroupId}.");
                 nextGroup.Unlock();
+                UpdateInstructionScreen(nextGroup.GroupId);
             }
             else
             {
@@ -52,6 +57,29 @@ public class EngineAssemblyManager : MonoBehaviour
         else
         {
             Debug.Log("AssemblyManager: All groups have been assembled!");
+            instructionScreen.ResetInstructions();
+        }
+    }
+
+    /// <summary>
+    /// Fetches the instruction for the group and updates the instruction screen.
+    /// </summary>
+    private void UpdateInstructionScreen(string groupId)
+    {
+        if (instructionManager != null && instructionScreen != null)
+        {
+            var instruction = instructionManager.GetInstructionForGroup(groupId);
+            if (instruction != null)
+            {
+                instructionScreen.UpdateInstructions(
+                    instruction.instructionTitle,
+                    instruction.instructionText
+                );
+            }
+            else
+            {
+                instructionScreen.ResetInstructions();
+            }
         }
     }
 }

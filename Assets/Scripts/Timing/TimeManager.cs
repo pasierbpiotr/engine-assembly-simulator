@@ -25,7 +25,7 @@ public class TimeManager : MonoBehaviour
             // Create the file with headers
             using (StreamWriter sw = File.CreateText(csvFilePath))
             {
-                sw.WriteLine("GroupId,PartId,TimeTaken");
+                sw.WriteLine("GroupId;PartId;TimeTaken");
             }
 
             Debug.Log($"CSV file created at path: {csvFilePath}");
@@ -88,7 +88,7 @@ public class TimeManager : MonoBehaviour
             using (StreamWriter sw = File.AppendText(csvFilePath))
             {
                 // Write the timing in CSV format
-                sw.WriteLine($"{groupId},{partId},{timeTaken}");
+                sw.WriteLine($"{groupId};{partId};{timeTaken}");
             }
 
             Debug.Log($"Saved timing for GroupId: {groupId}, PartId: {partId}, TimeTaken: {timeTaken}.");
