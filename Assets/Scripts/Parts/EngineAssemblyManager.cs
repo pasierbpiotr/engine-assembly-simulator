@@ -47,6 +47,7 @@ public class EngineAssemblyManager : MonoBehaviour
             {
                 Debug.Log($"AssemblyManager: Unlocking next group {nextGroup.GroupId}.");
                 nextGroup.Unlock();
+                FindObjectOfType<TimeManager>().StartGroupTiming(nextGroup.GroupId);
                 UpdateInstructionScreen(nextGroup.GroupId);
             }
             else

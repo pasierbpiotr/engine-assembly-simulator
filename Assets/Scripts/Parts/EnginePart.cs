@@ -8,6 +8,8 @@ public class EnginePart : MonoBehaviour
     public string PartId; // Unique identifier for this part
     private XRGrabInteractable grabInteractable;
     private TimeManager timeManager;
+    public Vector3 OriginalScale { get; private set; }
+    public bool HasOriginalScaleStored { get; private set; }
 
     private void Awake()
     {
@@ -31,25 +33,18 @@ public class EnginePart : MonoBehaviour
 
             case AssemblyState.Unlocked:
                 grabInteractable.interactionLayers = InteractionLayerMask.GetMask("Unlocked");
-
-                // Start timing when the part becomes unlocked (if applicable)
-                if (timeManager != null)
-                {
-                    timeManager.StartTiming(PartId);
-                }
                 break;
 
+            // Change the StopTiming call in SetState
             case AssemblyState.Assembled:
-                grabInteractable.enabled = false; // Disable grab interaction
+                grabInteractable.enabled = false;
                 grabInteractable.interactionLayers = InteractionLayerMask.GetMask("AssembledPart");
 
-                // Stop timing when the part is assembled
+                // Update timing call
                 if (timeManager != null)
                 {
-                    timeManager.StopTiming(GroupId, PartId);
+                    timeManager.StopPartTiming(GroupId, PartId);
                 }
-
-                Debug.Log($"Part {PartId} is now assembled and has interaction layer: Assembled");
                 break;
         }
 
@@ -66,6 +61,7 @@ public class EnginePart : MonoBehaviour
         {
             SetState(AssemblyState.Assembled); // Transition to Assembled state
             Debug.Log($"Part {PartId}: State set to Assembled.");
+            FindObjectOfType<TimingDisplayUI>()?.RefreshDisplay();
 
             // Notify the parent group
             var parentGroup = GetComponentInParent<EngineGroup>();
@@ -83,5 +79,11 @@ public class EnginePart : MonoBehaviour
         {
             Debug.LogWarning($"Part {PartId}: Cannot assemble because it is not unlocked.");
         }
+    }
+
+    public void StoreOriginalScale()
+    {
+        OriginalScale = transform.localScale;
+        HasOriginalScaleStored = true;
     }
 }

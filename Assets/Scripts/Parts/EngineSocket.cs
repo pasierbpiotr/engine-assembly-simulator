@@ -134,6 +134,21 @@ private void OnGrabReleased(SelectExitEventArgs args)
             part.transform.rotation = attachTransform.rotation;
             part.transform.SetParent(attachTransform); // Parent it to prevent falling
 
+            var braceSocket = GetComponent<CamshaftSocketConfig>();
+            if (braceSocket != null && braceSocket.isCamshaftBraceSocket)
+            {
+                // Store original scale first (only for braces)
+                if (!part.HasOriginalScaleStored)
+                {
+                    part.StoreOriginalScale();
+                }
+                
+                part.transform.localScale = Vector3.Scale(
+                    part.OriginalScale,
+                    braceSocket.sizeMultiplier
+                );
+            }
+
             var rb = part.GetComponent<Rigidbody>();
             if (rb != null)
             {

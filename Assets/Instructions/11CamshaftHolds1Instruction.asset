@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: 11CamshaftHolds1Instruction
   m_EditorClassIdentifier: 
   groupId: Group11
-  instructionTitle: "Mocowania wa\u0142u rozrz\u0105du 1"
-  instructionText: "Zamontuj 3 pierwsze mocowania wa\u0142u rozrz\u0105du."
+  instructionTitle: "Mocowania wa\u0142u rozrz\u0105du"
+  instructionText: "Zamontuj 12 mocowa\u0144 wa\u0142u rozrz\u0105du."
