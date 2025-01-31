@@ -10,8 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9bcaa10d440f97841bdd39ab3705e526, type: 3}
-  m_Name: 11CamshaftHolds1Instruction
+  m_Name: 11CamshaftHoldsInstruction
   m_EditorClassIdentifier: 
   groupId: Group11
   instructionTitle: "Mocowania wa\u0142u rozrz\u0105du"
-  instructionText: "Zamontuj 12 mocowa\u0144 wa\u0142u rozrz\u0105du."
+  instructionText: "Zamontuj 12 mocowa\u0144 wa\u0142u rozrz\u0105du, kt\xF3re znajduj\u0105
+    si\u0119 na mniejszym stoliku pod t\u0105 tablic\u0105."

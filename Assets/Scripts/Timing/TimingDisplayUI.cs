@@ -53,6 +53,6 @@ public class TimingDisplayUI : MonoBehaviour
             totalTime += entry.TimeTaken;
         }
 
-        totalTimeText.text = $"Total Time: {totalTime:F1}s";
+        totalTimeText.text = $"Całkowity czas: {totalTime:F1}s";
     }
 }
