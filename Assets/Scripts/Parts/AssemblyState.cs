@@ -1,20 +1,13 @@
-/// <summary>
-/// Wyliczenie reprezentujące możliwe stany montażu części.
-/// </summary>
+// Określa możliwe stany części silnika podczas procesu montażowego
 public enum AssemblyState
 {
-    /// <summary>
-    /// Część jest zablokowana i nie można jej używać ani montować.
-    /// </summary>
+    // Część zablokowana - niedostępna do interakcji
+    // (domyślny stan przed rozpoczęciem montażu)
     Locked,
-
-    /// <summary>
-    /// Część jest odblokowana i można ją montować.
-    /// </summary>
+    // Część odblokowana - gotowa do podjęcia przez użytkownika
+    // (aktywny stan podczas montażu)
     Unlocked,
-
-    /// <summary>
-    /// Część została zamontowana i nie można już jej edytować ani przesuwać.
-    /// </summary>
+    // Część zmontowana - ostateczna pozycja, blokada dalszych interakcji
+    // (stan końcowy po prawidłowym montażu)
     Assembled
 }

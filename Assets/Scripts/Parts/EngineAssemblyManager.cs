@@ -1,23 +1,23 @@
 using UnityEngine;
 using System.Collections.Generic;
 
+// Główny menedżer procesu montażowego zarządzający sekwencyjną kompletacją grup części
 public class EngineAssemblyManager : MonoBehaviour
 {
-    public List<EngineGroup> GroupsOrder; // Ordered list of groups
-    private Queue<EngineGroup> groupQueue = new Queue<EngineGroup>();
+    public List<EngineGroup> GroupsOrder; // Lista grup w kolejności montażowej
+    private Queue<EngineGroup> groupQueue = new Queue<EngineGroup>(); // Kolejka grup do zmontowania
 
     [Header("Dependencies")]
-    public InstructionScreen instructionScreen;   // Reference to the InstructionScreen
-    public InstructionManager instructionManager; // Reference to the InstructionManager
+    public InstructionScreen instructionScreen; // Referencja do interfejsu instrukcji
+    public InstructionManager instructionManager; // Menadżer treści instruktażowych
 
+    // Inicjalizacja kolejki grup na początku działania sceny
     private void Start()
     {
         InitializeGroupQueue();
     }
 
-    /// <summary>
-    /// Enqueue all groups and unlock the first one.
-    /// </summary>
+    // Przygotowuje kolejkę grup na podstawie zdefiniowanej kolejności
     private void InitializeGroupQueue()
     {
         foreach (var group in GroupsOrder)
@@ -29,15 +29,14 @@ public class EngineAssemblyManager : MonoBehaviour
         UnlockNextGroup();
     }
 
-    /// <summary>
-    /// Called when a group is fully assembled. Unlocks the next group.
-    /// </summary>
+    // Wywoływane po pełnym zmontowaniu grupy - rozpoczyna następny etap
     public void OnGroupAssembled(EngineGroup group)
     {
         Debug.Log($"AssemblyManager: Group {group.GroupId} is fully assembled.");
         UnlockNextGroup();
     }
 
+    // Odblokowuje następną grupę w kolejce montażowej
     private void UnlockNextGroup()
     {
         if (groupQueue.Count > 0)
@@ -62,9 +61,7 @@ public class EngineAssemblyManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Fetches the instruction for the group and updates the instruction screen.
-    /// </summary>
+    // Aktualizuje wyświetlane instrukcje dla aktualnej grupy
     private void UpdateInstructionScreen(string groupId)
     {
         if (instructionManager != null && instructionScreen != null)

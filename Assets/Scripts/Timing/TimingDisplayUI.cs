@@ -3,16 +3,16 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using System.Linq;
 
+// Klasa odpowiedzialna za wyświetlanie statystyk czasu montażu w interfejsie użytkownika
 public class TimingDisplayUI : MonoBehaviour
 {
     [Header("UI References")]
-    public Canvas timingCanvas;
-    public Text timingTextPrefab;
-    public Transform contentParent;
-    public Text totalTimeText;
-
-    private TimeManager timeManager;
-    private List<Text> instantiatedTexts = new List<Text>();
+    public Canvas timingCanvas; // Główny canvas wyświetlacza
+    public Text timingTextPrefab; // Prefab tekstu dla pojedynczego wpisu
+    public Transform contentParent; // Kontener dla elementów listy
+    public Text totalTimeText; // Tekst z sumarycznym czasem
+    private TimeManager timeManager; // Referencja do menedżera czasu
+    private List<Text> instantiatedTexts = new List<Text>(); // Lista utworzonych tekstów
 
     private void Start()
     {
@@ -20,22 +20,22 @@ public class TimingDisplayUI : MonoBehaviour
         timingCanvas.enabled = true;
     }
 
+    // Przełączanie widoczności panelu czasów
     public void ToggleDisplay()
     {
         timingCanvas.enabled = !timingCanvas.enabled;
         if (timingCanvas.enabled) RefreshDisplay();
     }
 
+    // Aktualizacja całego widoku statystyk
     public void RefreshDisplay()
     {
-        // Clear existing entries
         foreach (var text in instantiatedTexts)
         {
             if (text != null) Destroy(text.gameObject);
         }
         instantiatedTexts.Clear();
 
-        // Add new entries
         if (timeManager == null)
         {
             Debug.LogError("TimeManager reference is missing!");

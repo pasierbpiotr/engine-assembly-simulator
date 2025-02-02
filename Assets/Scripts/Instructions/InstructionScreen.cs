@@ -2,31 +2,27 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
+// Klasa zarządzająca ekranem instrukcji montażu części
 public class InstructionScreen : MonoBehaviour
 {
     [Header("UI References")]
-    public TextMeshProUGUI partTitle;       // Title Text UI
-    public TextMeshProUGUI partDescription; // Description Text UI
+    public TextMeshProUGUI partTitle;        // Pole tekstowe z nazwą części
+    public TextMeshProUGUI partDescription;  // Pole tekstowe z opisem czynności
 
     [Header("Default Values")]
-    public string defaultTitle = "Awaiting Assembly";
-    public string defaultDescription = "Start assembling the first part!";
+    public string defaultTitle = "Gratulacje!";
+    public string defaultDescription = "Udało ci się złożyć silnik!";
 
-    /// <summary>
-    /// Updates the instruction screen with part details.
-    /// </summary>
+    // Aktualizuje wyświetlane instrukcje
     public void UpdateInstructions(string title, string description)
     {
-        // Update title and description
         partTitle.text = title;
         partDescription.text = description;
 
         Debug.Log($"InstructionScreen updated: Title = {title}, Description = {description}");
     }
 
-    /// <summary>
-    /// Resets the screen to default values.
-    /// </summary>
+    // Resetuje instrukcje do wartości domyślnych
     public void ResetInstructions()
     {
         UpdateInstructions(defaultTitle, defaultDescription);

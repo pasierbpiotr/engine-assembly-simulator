@@ -1,5 +1,6 @@
 using UnityEngine;
 
+// Klasa konfiguracyjna dla gniazd montażowych CamshaftBrace
 public class CamshaftSocketConfig : MonoBehaviour
 {
     [Header("Brace Scaling")]

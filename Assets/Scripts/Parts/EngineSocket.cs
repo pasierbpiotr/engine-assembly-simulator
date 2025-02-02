@@ -1,38 +1,33 @@
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 
+// Główna klasa zarządzająca gniazdami montażowymi części silnika w VR
 public class EngineSocket : XRSocketInteractor
 {
-    public string groupId; // Group this socket belongs to
-    private bool isPartAssembled = false;
+    public string groupId; // ID grupy dla dopasowania części
+    private bool isPartAssembled = false; // Flaga złożenia części
 
-    /// <summary>
-    /// Override CanSelect to enforce validation for compatible parts.
-    /// </summary>
-public override bool CanSelect(IXRSelectInteractable interactable)
-{
-    if (isPartAssembled) return false; // Prevent interaction if the part is already in place
-
-    var enginePart = interactable.transform.GetComponent<EnginePart>();
-    if (enginePart != null && enginePart.GroupId == groupId)
+    // Sprawdza możliwość umieszczenia części w gnieździe
+    public override bool CanSelect(IXRSelectInteractable interactable)
     {
-        var grabInteractable = interactable as XRGrabInteractable;
-        if (grabInteractable != null && grabInteractable.isSelected)
+        if (isPartAssembled) return false;
+
+        var enginePart = interactable.transform.GetComponent<EnginePart>();
+        if (enginePart != null && enginePart.GroupId == groupId)
         {
-            return false; // Prevent the socket from selecting the part while it is still being held.
+            var grabInteractable = interactable as XRGrabInteractable;
+            if (grabInteractable != null && grabInteractable.isSelected)
+            {
+                return false;
+            }
+
+            return true;
         }
 
-        return true; // The part is valid and can be selected by the socket.
+        return false;
     }
 
-    return false; // Invalid part
-}
-
-
-
-    /// <summary>
-    /// When a valid part is placed, handle snapping after letting go of the grab.
-    /// </summary>
+    // Obsługa wejścia części do gniazda
     protected override void OnSelectEntered(SelectEnterEventArgs args)
     {
         base.OnSelectEntered(args);
@@ -47,7 +42,6 @@ public override bool CanSelect(IXRSelectInteractable interactable)
             var grabInteractable = part.GetComponent<XRGrabInteractable>();
             if (grabInteractable != null)
             {
-                // Ensure we do not add duplicate listeners
                 grabInteractable.selectExited.RemoveListener(OnGrabReleased);
                 grabInteractable.selectExited.AddListener(OnGrabReleased);
 
@@ -56,17 +50,17 @@ public override bool CanSelect(IXRSelectInteractable interactable)
         }
     }
 
-
-    private float exitCooldown = 0.5f; // Half a second cooldown
+    // Zabezpieczenie przed szybkimi wyjściami
+    private float exitCooldown = 0.5f;
     private float lastExitTime = -1f;
 
+    // Obsługa próby wyjęcia części z gniazda
     protected override void OnSelectExited(SelectExitEventArgs args)
     {
         base.OnSelectExited(args);
 
         if (isPartAssembled) return;
 
-        // Check for cooldown
         if (Time.time - lastExitTime < exitCooldown)
         {
             Debug.Log($"Socket {name}: Ignoring rapid OnSelectExited calls.");
@@ -87,43 +81,31 @@ public override bool CanSelect(IXRSelectInteractable interactable)
         }
     }
 
-
-
-
-private void OnGrabReleased(SelectExitEventArgs args)
-{
-    var part = args.interactableObject.transform.GetComponent<EnginePart>();
-    if (part == null || isPartAssembled) return;
-
-    // Snap the part to the socket
-    SnapPartToSocket(part);
-    part.OnPartAssembled();
-
-    // Disable part's interactivity
-    var grabInteractable = part.GetComponent<XRGrabInteractable>();
-    if (grabInteractable != null)
+    // Logika finalnego montażu części
+    private void OnGrabReleased(SelectExitEventArgs args)
     {
-        grabInteractable.enabled = false;
-        Debug.Log($"Part {part.name}: Grabbing interaction disabled.");
+        var part = args.interactableObject.transform.GetComponent<EnginePart>();
+        if (part == null || isPartAssembled) return;
+
+        SnapPartToSocket(part);
+        part.OnPartAssembled();
+
+        var grabInteractable = part.GetComponent<XRGrabInteractable>();
+        if (grabInteractable != null)
+        {
+            grabInteractable.enabled = false;
+            Debug.Log($"Part {part.name}: Grabbing interaction disabled.");
+        }
+
+        interactionLayers = LayerMask.GetMask("AssembledSocket");
+        Debug.Log($"Socket {name}: Interaction layers set to Assembled.");
+
+        isPartAssembled = true;
+
+        Debug.Log($"Socket {name}: Part {part.name} successfully assembled.");
     }
 
-    // Change the socket's interaction layers to a non-interactive state
-    interactionLayers = LayerMask.GetMask("AssembledSocket");
-    Debug.Log($"Socket {name}: Interaction layers set to Assembled.");
-
-    isPartAssembled = true; // Mark the socket as assembled
-
-    Debug.Log($"Socket {name}: Part {part.name} successfully assembled.");
-}
-
-
-
-
-
-
-    /// <summary>
-    /// Snaps the part to the socket's attach transform.
-    /// </summary>
+    // Metoda przyciągania i konfiguracji części
     private void SnapPartToSocket(EnginePart part)
     {
         var attachTransform = this.attachTransform;
@@ -132,12 +114,11 @@ private void OnGrabReleased(SelectExitEventArgs args)
         {
             part.transform.position = attachTransform.position;
             part.transform.rotation = attachTransform.rotation;
-            part.transform.SetParent(attachTransform); // Parent it to prevent falling
+            part.transform.SetParent(attachTransform);
 
             var braceSocket = GetComponent<CamshaftSocketConfig>();
             if (braceSocket != null && braceSocket.isCamshaftBraceSocket)
             {
-                // Store original scale first (only for braces)
                 if (!part.HasOriginalScaleStored)
                 {
                     part.StoreOriginalScale();

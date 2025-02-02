@@ -1,21 +1,20 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// Główny menedżer odpowiedzialny za zarządzanie instrukcjami montażowymi grup
 public class InstructionManager : MonoBehaviour
 {
     [Header("Group Instructions")]
-    public List<GroupInstruction> instructionsList; // List of all group instructions
+    public List<GroupInstruction> instructionsList; // Lista instrukcji ładowanych z inspektora
+    private Dictionary<string, GroupInstruction> instructionsDictionary; // Słownik dla szybkiego dostępu
 
-    private Dictionary<string, GroupInstruction> instructionsDictionary;
-
+    // Inicjalizacja przy starcie obiektu
     private void Awake()
     {
         InitializeDictionary();
     }
 
-    /// <summary>
-    /// Convert the instructions list into a dictionary for fast lookup.
-    /// </summary>
+    // Konwertuje listę instrukcji na optymalizowany słownik
     private void InitializeDictionary()
     {
         instructionsDictionary = new Dictionary<string, GroupInstruction>();
@@ -34,11 +33,7 @@ public class InstructionManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Get the instruction for a specific group.
-    /// </summary>
-    /// <param name="groupId">The ID of the group.</param>
-    /// <returns>The instruction for the group, or null if not found.</returns>
+    // Pobiera instrukcję dla danej grupy montażowej
     public GroupInstruction GetInstructionForGroup(string groupId)
     {
         if (instructionsDictionary.TryGetValue(groupId, out var instruction))

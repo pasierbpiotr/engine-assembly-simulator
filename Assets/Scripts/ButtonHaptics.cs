@@ -8,25 +8,20 @@ public class ButtonHaptics : MonoBehaviour
 
     public void TriggerHaptics()
     {
-        // Log that the method was triggered
         Debug.Log("TriggerHaptics called.");
 
-        // Find the interactor (controller) currently interacting with the button
         XRRayInteractor interactor = GetInteractor();
         if (interactor != null)
         {
             Debug.Log($"Interactor found: {interactor.name}");
 
-            // Determine which controller is associated with the interactor
             XRBaseController activeController = interactor.name.Contains("Left") ? leftController : rightController;
 
             if (activeController != null)
             {
-                // Log which controller is being used
                 Debug.Log($"Sending haptics to: {(interactor.name.Contains("Left") ? "Left Controller" : "Right Controller")}");
 
-                // Send haptic feedback
-                activeController.SendHapticImpulse(0.5f, 0.1f); // Amplitude and duration
+                activeController.SendHapticImpulse(0.5f, 0.1f);
             }
             else
             {
@@ -41,10 +36,8 @@ public class ButtonHaptics : MonoBehaviour
 
     private XRRayInteractor GetInteractor()
     {
-        // Log the raycasting process
         Debug.Log("Checking for interactor via raycasting.");
 
-        // Find an active XRRayInteractor hitting this object
         RaycastHit hit;
         if (Physics.Raycast(transform.position, Vector3.forward, out hit))
         {

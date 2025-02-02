@@ -1,39 +1,32 @@
 using UnityEngine;
 using System.Collections.Generic;
 
+// Klasa zarządzająca grupą części silnika i ich procesem montażu
 public class EngineGroup : MonoBehaviour
 {
-    public string GroupId; // ID of this group
-    public List<EnginePart> Parts = new List<EnginePart>();
-    public List<EngineSocket> Sockets = new List<EngineSocket>();
+    public string GroupId; // Unikalne ID grupy
+    public List<EnginePart> Parts = new List<EnginePart>(); // Lista części w grupie
+    public List<EngineSocket> Sockets = new List<EngineSocket>(); // Lista gniazd w grupie
+    private int assembledPartsCount = 0; // Licznik złożonych części
+    public bool IsComplete => assembledPartsCount == Parts.Count; // Flaga zakończenia grupy
 
-    private int assembledPartsCount = 0;
-
-    public bool IsComplete => assembledPartsCount == Parts.Count;
-
-    /// <summary>
-    /// Unlocks all parts and sockets in this group.
-    /// </summary>
+    // Odblokowuje całą grupę do montażu
     public void Unlock()
     {
         Debug.Log($"Group {GroupId} unlocked.");
 
-        // Unlock all parts in the group
         foreach (var part in Parts)
         {
             part.SetState(AssemblyState.Unlocked);
         }
 
-        // Enable sockets associated with this group
         foreach (var socket in Sockets)
         {
-            EnableSocket(socket, true); // Activate sockets
+            EnableSocket(socket, true);
         }
     }
 
-    /// <summary>
-    /// Increases the count of assembled parts and notifies the manager if the group is complete.
-    /// </summary>
+    // Wywoływane przy złożeniu każdej części w grupie
     public void OnPartAssembled()
     {
         assembledPartsCount++;
@@ -42,7 +35,7 @@ public class EngineGroup : MonoBehaviour
         if (assembledPartsCount > Parts.Count)
         {
             Debug.LogWarning($"Group {GroupId}: Assembled parts count exceeded total parts!");
-            assembledPartsCount = Parts.Count; // Safety check
+            assembledPartsCount = Parts.Count;
         }
 
         if (IsComplete)
@@ -52,8 +45,7 @@ public class EngineGroup : MonoBehaviour
         }
     }
 
-
-
+    // Powiadamia główny menedżer montażu o ukończeniu grupy
     private void NotifyAssemblyManager()
     {
         var manager = FindObjectOfType<EngineAssemblyManager>();
@@ -68,17 +60,13 @@ public class EngineGroup : MonoBehaviour
         }
     }
 
-
-    /// <summary>
-    /// Activates or deactivates a given socket for this group.
-    /// </summary>
+    // Kontroluje aktywność gniazd montażowych
     private void EnableSocket(EngineSocket socket, bool isActive)
     {
         socket.enabled = isActive;
 
         if (isActive)
         {
-            // Shared layer for both parts and sockets
             socket.interactionLayers = LayerMask.GetMask("Unlocked");
         }
         else

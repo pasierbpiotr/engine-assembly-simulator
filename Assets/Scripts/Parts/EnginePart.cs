@@ -1,26 +1,26 @@
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 
+// Klasa zarządzająca stanem i interakcjami części silnika w środowisku VR
 public class EnginePart : MonoBehaviour
 {
-    public AssemblyState State { get; private set; } // Part assembly state
-    public string GroupId; // ID of the group this part belongs to
-    public string PartId; // Unique identifier for this part
-    private XRGrabInteractable grabInteractable;
-    private TimeManager timeManager;
-    public Vector3 OriginalScale { get; private set; }
-    public bool HasOriginalScaleStored { get; private set; }
+ // Właściwości stanu części
+    public AssemblyState State { get; private set; }
+    public string GroupId;         // ID grupy, do której należy część
+    public string PartId;          // Unikalne ID części
+    private XRGrabInteractable grabInteractable; // Komponent do interakcji chwytania w VR
+    private TimeManager timeManager;             // Menadżer czasu montażu
+    public Vector3 OriginalScale { get; private set; } // Początkowa skala obiektu
+    public bool HasOriginalScaleStored { get; private set; } // Flaga przechowywania skali
 
+    // Inicjalizacja komponentów przy tworzeniu obiektu
     private void Awake()
     {
         grabInteractable = GetComponent<XRGrabInteractable>();
         timeManager = FindObjectOfType<TimeManager>();
     }
 
-    /// <summary>
-    /// Sets the assembly state and handles interactivity accordingly.
-    /// </summary>
-    /// <param name="newState">The new assembly state.</param>
+    // Metoda zmieniająca stan części i dostosowująca jej interaktywność
     public void SetState(AssemblyState newState)
     {
         State = newState;
@@ -35,12 +35,10 @@ public class EnginePart : MonoBehaviour
                 grabInteractable.interactionLayers = InteractionLayerMask.GetMask("Unlocked");
                 break;
 
-            // Change the StopTiming call in SetState
             case AssemblyState.Assembled:
                 grabInteractable.enabled = false;
                 grabInteractable.interactionLayers = InteractionLayerMask.GetMask("AssembledPart");
 
-                // Update timing call
                 if (timeManager != null)
                 {
                     timeManager.StopPartTiming(GroupId, PartId);
@@ -51,19 +49,15 @@ public class EnginePart : MonoBehaviour
         Debug.Log($"Part {PartId}: State changed to {State}");
     }
 
-
-    /// <summary>
-    /// Notifies the parent group when the part is fully assembled.
-    /// </summary>
+    // Metoda wywoływana po prawidłowym złożeniu części
     public void OnPartAssembled()
     {
         if (State == AssemblyState.Unlocked)
         {
-            SetState(AssemblyState.Assembled); // Transition to Assembled state
+            SetState(AssemblyState.Assembled);
             Debug.Log($"Part {PartId}: State set to Assembled.");
             FindObjectOfType<TimingDisplayUI>()?.RefreshDisplay();
 
-            // Notify the parent group
             var parentGroup = GetComponentInParent<EngineGroup>();
             if (parentGroup != null)
             {
@@ -81,6 +75,7 @@ public class EnginePart : MonoBehaviour
         }
     }
 
+    // Metoda zapisująca początkową skalę obiektu - używana do CrankshaftBrace
     public void StoreOriginalScale()
     {
         OriginalScale = transform.localScale;
