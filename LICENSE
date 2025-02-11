@@ -1,0 +1,32 @@
+engine-assembly-simulator – NonCommercial License
+=======================================
+
+Copyright (c) 2025 Piotr Pasierb
+
+This Unity project ("Project") includes source code, 3D models (e.g., .fbx files), textures, audio, and other assets ("Assets"). The entire Project is made available for non-commercial use only.
+
+By using, copying, modifying, or redistributing any part of this Project, you agree to the following terms:
+
+1. Attribution
+   • You must give appropriate credit to the original author ("Piotr Pasierb"), include a link to the original repository (if available), and indicate if changes were made.
+
+2. NonCommercial Use
+   • You are permitted to use, copy, modify, and redistribute the Project and its components strictly for non-commercial purposes.
+   • Commercial use of any part of this Project, including the source code and assets, is strictly prohibited without obtaining prior written permission from the copyright holder.
+
+3. ShareAlike (for derivative works)
+   • Any modifications or derivative works you distribute must be licensed under the same non-commercial terms as this Project.
+
+For clarity, the licenses applied to different components of this Project are as follows:
+
+• Source Code: Licensed under the PolyForm Noncommercial License 1.0.0.
+  The full text of this license is available at:
+  https://polyformproject.org/licenses/noncommercial/1.0.0/
+
+• Non-Code Assets (including 3D models etc.): Licensed under the Creative Commons Attribution-NonCommercial 4.0 International License.
+  The full text of this license is available at:
+  https://creativecommons.org/licenses/by-nc/4.0/
+
+If you wish to use any part of this Project for commercial purposes, please contact [Your Contact Information] to discuss licensing options.
+
+By using this Project, you acknowledge that you have read, understood, and agree to be bound by these terms.
