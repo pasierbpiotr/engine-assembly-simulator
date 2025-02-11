@@ -1,4 +1,5 @@
 # **VR Aplikacja Szkoleniowa do Montażu Silnika**
+Dla wersji angielskiej zobacz [README.md](README.md).
 ## **Opis**
 Ta aplikacja VR stworzona w Unity to interaktywne środowisko do nauki montażu silnika samochodowego, stworzona w ramach pracy inżynierskiej. Skierowana głównie do uczniów szkół motoryzacyjnych, mechaników-stażystów i pasjonatów motoryzacji, umożliwia krok po kroku składanie silnika przy użyciu realistycznych modeli 3D i intuicyjnego interfejsu VR. Projekt ma na celu poprawę jakości szkoleń praktycznych przy jednoczesnym obniżeniu kosztów związanych z wykorzystaniem fizycznych prototypów silników.
 
