@@ -9,7 +9,7 @@ This Unity-based virtual reality (VR) application provides an interactive learni
 - **Real-Time Validation** – Intelligent sockets verify the correct placement of components.
 - **Dynamic Instructions** – On-screen guidance updates in real time to assist users through each step.
 - **Time Tracking** – The system records assembly times for individual parts and entire sections.
-C **Technology Stack**
+## **Technology Stack**
 - **Engine**: Unity (XR Interaction Toolkit)
 - **3D Models**: Blender (.fbx format)
 - **Platform**: Oculus Quest 2 (Standalone VR)
